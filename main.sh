@@ -6,8 +6,7 @@
 generate_random_password () {
     dict=(a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z 0 1 2 3 4 5 6 7 8 9)
     length=10
-    if [ $# -gt 0 ]
-    then
+    if [ $# -gt 0 ]; then
         length=$1
     fi
     for ((i=0;(i<length);i++));do
@@ -26,9 +25,8 @@ generate_random_port () {
     for ((i=0;(i<length);i++));do
         result+=${dict[$RANDOM % ${#dict[@]}]}
     done
-    if [ $((result)) -lt 65535 ]
-        then
-            if [ $(netstat -ntlp |awk '{print $4}' |grep $result) ]
+    if [ $((result)) -lt 65535 ]; then
+            if [ $(netstat -ntlp |awk '{print $4}' |grep $result) ];
             then
                 result=''
                 i=0
@@ -51,8 +49,7 @@ change_yum_repo () {
     mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
     wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
     yum makecache
-    if [ $# -gt 0 && $1 == "extreme" ]
-    then
+    if [ $# -gt 0 ] && [ $1 == "extreme" ]; then
         yum -y upgrade #unsafe (http://unix.stackexchange.com/questions/55777/in-centos-what-is-the-difference-between-yum-update-and-yum-upgrade)
     else
         yum -y update #safer
@@ -64,8 +61,7 @@ change_yum_repo () {
 #return_echo: result;
 is_installed () {
     package_name=$1
-    if [ $(yum list installed |grep ${package_name} |tail -n 1 |awk '{print $1}') ]
-    then
+    if [ $(yum list installed |grep ${package_name} |tail -n 1 |awk '{print $1}') ]; then
         echo -e "[\033[32m sucess \e[0m] yum install: $package_name";
     else
         echo -e "[\033[31m failed \e[0m] yum install: $package_name";
@@ -76,8 +72,7 @@ is_installed () {
 #reqire: "is_installed";
 #return_echo: result;
 yum_install () {
-    if [ $# -gt 0 ]
-    then
+    if [ $# -gt 0 ]; then
         package_name=$1
         yum install -y $package_name
         echo $package_name
@@ -92,8 +87,7 @@ yum_install () {
 #reqire: "yum_install" "is_installed";
 #return_echo: result;
 install_basic_package () {
-    if [ $# -gt 0 ]
-    then
+    if [ $# -gt 0 ]; then
         packages_file=$1
         while read line
         do
@@ -104,7 +98,22 @@ install_basic_package () {
     fi
 }
 
-#install mysql
+#yum install mysql
+#para: mysql version 5.x (5 | 6 | 7)
+#reqire: "yum_install" "is_installed";
+#return_echo: result;
+yum_install_mysql() {
+    wget http://repo.mysql.com//mysql57-community-release-el6-8.noarch.rpm
+    rpm -ivh mysql57-community-release-el6-8.noarch.rpm
+    yum repolist all | grep mysql
+    sed -i '/enabled=/c enabled=0' /etc/yum.repos.d/mysql-community.repo
+    line=`grep mysql5$1 -n /etc/yum.repos.d/mysql-community.repo  -A 5 | grep enable | awk -F "-" '{print $1}'`
+    total="${line}""s/enabled=0/enabled=1/"
+    sed -i $total /etc/yum.repos.d/mysql-community.repo
+    yum repolist enabled | grep mysql
+    yum_install mysql-community-server
+    service mysqld start
+}
 
 #install jdk
 #wget http://download.oracle.com/otn-pub/java/jdk/8u121-b13/e9e7ea248e2c4826b92b3f075a80e441/jdk-8u121-linux-x64.tar.gz?AuthParam=1484749376_c16508346c3e699faecf69a72046a771
