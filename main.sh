@@ -98,7 +98,7 @@ install_basic_package () {
     fi
 }
 
-#yum install mysql
+#yum install mysql online
 #para: mysql version 5.x (5 | 6 | 7)
 #reqire: "yum_install" "is_installed";
 #return_echo: result;
@@ -113,6 +113,15 @@ yum_install_mysql() {
     yum repolist enabled | grep mysql
     yum_install mysql-community-server
     service mysqld start
+}
+
+#yum install mysql offline(https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-5.7.17-1.el7.x86_64.rpm-bundle.tar)
+#para: mysql version 5.7
+#reqire: "is_installed";
+#return_echo: none;
+yum_local_install_mysql() {
+    yum localinstall mysql-community-server-5.7.17-1.el7.x86_64.rpm mysql-community-client-5.7.17-1.el7.x86_64.rpm  mysql-community-common-5.7.17-1.el7.x86_64.rpm mysql-community-libs-5.7.17-1.el7.x86_64.rpm
+    is_installed mysql
 }
 
 #install jdk
